@@ -1,0 +1,15 @@
+{
+	"version": "2",
+	"mongoLogger": {
+		"addr": "",
+		"db": "",
+		"collection": ""
+	},
+	"syslogLogger": {
+		"network": "",
+		"addr": ""
+	},
+	"fileLogger": {
+		"filename": ""
+	}
+}

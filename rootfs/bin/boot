@@ -1,0 +1,39 @@
+#!/bin/sh
+
+docker_secrets_env() {
+    local ACCESS_KEY_FILE="/var/run/secrets/deis/objectstore/creds/accesskey"
+    local SECRET_KEY_FILE="/var/run/secrets/deis/objectstore/creds/secretkey"
+
+    if [ -f $ACCESS_KEY_FILE -a -f $SECRET_KEY_FILE ]; then
+        if [ -f $ACCESS_KEY_FILE ]; then
+            export MINIO_ACCESS_KEY="$(cat "$ACCESS_KEY_FILE")"
+        fi
+        if [ -f $SECRET_KEY_FILE ]; then
+            export MINIO_SECRET_KEY="$(cat "$SECRET_KEY_FILE")"
+        fi
+    fi
+}
+
+docker_gateway_env() {
+    if [ "$STORAGE" == "gcs" ] ; then
+        GOOGLE_APPLICATION_CREDENTIALS="/var/run/secrets/deis/objectstore/creds/key.json"
+        export GOOGLE_APPLICATION_CREDENTIALS="$GOOGLE_APPLICATION_CREDENTIALS"
+    fi
+    local ENDPOINT_FILE="/var/run/secrets/deis/objectstore/creds/endpoint"
+    if [ -f $ENDPOINT_FILE ]; then
+        export ENDPOINT="$(cat "$ENDPOINT_FILE")"
+    else
+        export ENDPOINT=""
+    fi
+}
+
+docker_secrets_env
+
+if [ "$STORAGE" == "minio" ] ; then
+    exec minio --config-dir "$MINIO_CONFIG_DIR" \ 
+        server "$MINIO_DATA_DIR"
+else
+    docker_gateway_env
+    exec minio --config-dir "$MINIO_CONFIG_DIR" \
+        gateway "$STORAGE" "$ENDPOINT"
+fi

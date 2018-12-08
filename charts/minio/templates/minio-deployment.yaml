@@ -6,7 +6,7 @@ metadata:
   labels:
     heritage: deis
   annotations:
-    component.deis.io/version: {{ .Values.docker_tag }}
+    component.deis.cc/version: {{ .Values.docker_tag }}
 spec:
   replicas: 1
   strategy:
@@ -25,33 +25,20 @@ spec:
           image: quay.io/{{.Values.org}}/minio:{{.Values.docker_tag}}
           imagePullPolicy: {{.Values.pull_policy}}
           env:
-            - name: HEALTH_SERVER_PORT
-              value: "8082"
+            - name: STORAGE
+              value: "{{.Values.global.storage}}"
           ports:
             - containerPort: 9000
-            - containerPort: 8082
-          livenessProbe:
-            httpGet:
-              path: /healthz
-              port: 8082
-            initialDelaySeconds: 30
-            timeoutSeconds: 1
-          readinessProbe:
-            httpGet:
-              path: /healthz
-              port: 8082
-            initialDelaySeconds: 30
-            timeoutSeconds: 1
           command:
             - boot
           args:
             - "server /home/minio/"
           volumeMounts:
-            - name: minio-user
-              mountPath: /var/run/secrets/deis/minio/user
+            - name: objectstore-creds
+              mountPath: /var/run/secrets/deis/objectstore/creds
               readOnly: true
       volumes:
-        - name: minio-user
+        - name: objectstore-creds
           secret:
-            secretName: minio-user
+            secretName: objectstorage-keyfile
 {{- end }}

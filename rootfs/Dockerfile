@@ -1,21 +1,10 @@
-FROM minio/mc:RELEASE.2018-11-06T01-12-20Z as mc
+FROM minio/minio:RELEASE.2018-12-06T01-27-43Z
 
-FROM minio/minio:RELEASE.2018-11-06T01-01-02Z
-
-COPY --from=mc /usr/bin/mc /usr/bin/mc
-
-RUN adduser \
-       -s /bin/sh \
-       -D  \
-       -h /home/minio \
-       minio \
-       minio
+ENV MINIO_DATA_DIR /var/lib/minio/data
+ENV MINIO_CONFIG_DIR /var/lib/minio/config
 
 COPY . /
 
-RUN mkdir /home/minio/.minio \
-        && chown minio:minio /home/minio/.minio
-
-USER minio
+VOLUME "/var/lib/minio/data"
 
 CMD ["/bin/boot"]
